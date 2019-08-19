@@ -1,0 +1,40 @@
+/* Layla Tame A01192934*/
+
+select '1. Movie daily rent greater than $15'
+select title
+from Video
+where dailyRent > '15'
+
+select '2. Clients that have movies rented and not returned'
+select fName, lName
+from Member join RentalAgreement on MemberNo = MemberNo
+where dateOut <> 'NULL' and dateReturn = 'NULL'
+
+select '3. Movie that has never been rented'
+select title
+from Video, VideoForRent, RentalAgreement
+where rentalNo = 'NULL'
+
+select '4. Movie and Director for movies rented by women'
+select Video, Director, Member
+where sex = 'F'
+
+select '5. Clients that don't have movies to return'
+select fName, lName
+from Member join RentalAgreement on memberNo = memberNo
+where dateOut <> 'NULL' and dateReturn <> 'NULL'
+
+select '6. Movies available for rent'
+select title
+from Video join VideoForRent on catalogNo = catalogNo
+where available = 'YES'
+
+select '7. Movie and director for clients with last name Lopez'
+select title, directorName
+from Video, Director, Member
+where lName = 'Lopez'
+
+select '8. Name of male clients born before 1989'
+select fName, lName
+from Member
+where sex = 'M' and DOB  < '1989'

@@ -1,0 +1,44 @@
+select SupplierID, COUNT(supplierID)
+from Products
+group by SupplierID
+
+select ProductName, CompanyName, City
+from Products join Suppliers
+on Products.SupplierID =Suppliers.SupplierID
+where City like '_o%'
+
+/*Another way to do it*/
+select ProductName, CompanyName, City
+from Products, Suppliers
+where City like '_o%' and Products.SupplierID = Suppliers.SupplierID
+
+select productname
+from Products
+where ProductID IN(
+
+select ProductId, sum (quantity) 
+from [Order Details]
+order by ProductID
+having sum (quantity) >= ALL
+	(select sum (quantity)
+	from [Order Details]
+	group by ProductID))
+	
+select top 5 products.ProductID, productname, sum (quantity) as totalQuantity
+from [Order Details] join Products
+on [Order Details].ProductID=Products.ProductID
+group by products.ProductID, ProductName
+order by totalQuantity desc
+
+select Customer.CustomerID, companyname, 
+sum(UnitPrice*Quantity*(1-discount)) as sales, 
+COUNT (distinct orders.OrderId) numberOfOrders
+from [Order Details] join orders 
+on [Order Details].OrderID = Orders.OrderID
+join Customers on Customers.CustomerID = Orders.CustomerID
+where YEAR(OrderDate) = 1997
+group by orders.OrderID, Customers.customerID, companyname
+having sum(UnitPrice*Quantity*(1-discount)) > 10000
+order by sales desc
+
+

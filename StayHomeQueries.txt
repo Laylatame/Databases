@@ -1,0 +1,129 @@
+select '1. Female and male members'
+select count(case when sex='M' then 1 end) as Male, 
+	   count(case when sex='F' then 1 end) as Female 
+from Member
+
+select '2. Number of records in Video Table'
+select count(catalogNo) as NumberOfRecords 
+from Video
+
+select '3. Sorted names'
+select fname, lname 
+from Member order by fname
+
+select '4. Title and director'
+select title, DirectorName
+from Video V join Director D on V.DirectorNo = D.DirectorNo
+
+select '5. Inventory value'
+Select sum(price) as InvestedOnVideos 
+from Video V join VideoForRent VR on V.catalogNo = VR.catalogNo
+
+select '6. Video title and number of copies'
+Select distinct V.catalogNo,title, count(videoNo) as NumOfVideos from Video as V LEFT join VideoForRent as VR on V.catalogNo = VR.catalogNo
+GROUP BY V.catalogNo, title
+having COUNT(videoNo) >= 3
+order by NumOfVideos desc
+	
+select '7. Category and number of movies'
+Select title, count(rentalNo) 
+from Video as V join VideoForRent as VR 
+on V.catalogNo = VR.catalogNo
+join RentalAgreement as RA on RA.videoNo = VR.videoNo
+GROUP BY title
+having COUNT(rentalNo) >= ALL
+(Select count(rentalNo) 
+from Video as V join VideoForRent as VR 
+on V.catalogNo = VR.catalogNo
+join RentalAgreement as RA on RA.videoNo = VR.videoNo
+GROUP BY title)
+
+select '8. Movies with highest daily rent'
+Select v.catalogNo, title, dailyRental, dateOut, dateReturn, DATEDIFF(day, dateOut,dateReturn)*dailyrental as Price
+from Video as V join VideoForRent as VR 
+on V.catalogNo = VR.catalogNo
+join RentalAgreement as RA on RA.videoNo = VR.videoNo
+
+
+select '9. Movie and income obtained'
+select title, rentalNo, dailyRental
+	count(rentalNo for title) as numRentals
+from Video, VideoForRent, RentalAgreement
+select dailyRental*numRentals
+
+select '10. Name of members with not returned movies'
+select fName, lName
+from Member join RentalAgreement on MemberNo = MemberNo
+where dateOut <> 'NULL' and dateReturn = 'NULL'
+
+select '11. Movie with most rentals'
+select Top 1 with TIES title, count(rentalNo) as numRentals
+from Video V
+join VideoForRent VR on v.catalogNo=VR.catalogNo
+join RentalAgreement RA on VR.videoNo=RA.videoNo
+group by title
+order by numRentals desc
+
+
+select '12. Members with birthdays today'
+select fname, lname, DOB
+from Member 
+where DOB = GETDATE(day)
+
+select '13. Movie never rented'
+select title, rentalNo
+from Video, Rental Agreement
+where catalogNo = 'NULL'
+
+select '14. Same year as Lorna Smith'
+select fname, lname, DOB
+	yearLorna = DOB(year) where fname = 'Lorna' and lname = 'Smith'
+from Member 
+where DOB(year) = yearLorna
+
+select '15. Members with highest number of rentals'
+select fName+ ' '+lName Nombre, 'Con mas videos rentados' 'PosiciÛn'
+from Member
+where memberNo in
+   (select memberNo
+   from RentalAgreement
+   group by memberNo
+   having count(videoNo) >= all
+         (select count(videoNo)
+          from RentalAgreement
+          group by memberNo))
+UNION
+select fName+' '+lName Nombre, 'Con menos videos rentados'
+from Member
+where memberNo in
+   (select memberNo
+    from RentalAgreement
+    group by memberNo
+    having count(videoNo) <= all
+          (select count(videoNo)
+           from RentalAgreement
+           group by memberNo))
+
+select '16. Same rentals as DON NELSON'
+select distinct fName,Lname
+from Member, RentalAgreement
+where Member.memberNo = RentalAgreement.memberNo and
+not (fName = 'Don' and lName = 'Nelson') and
+Member.memberNo not in
+      /* Personas que rentaron peliculas que no rento Don Nelson */
+      (select memberNo
+       from RentalAgreement
+       where videoNo not in
+       /* peliculas rentadas por Don Nelson */
+       (select distinct videoNo
+        from Member, RentalAgreement
+        where Member.memberNo =
+        RentalAgreement.memberNo and
+          fName = 'Don' and lName = 'Nelson')
+          group by memberNo)
+group by fName,Lname
+having count(distinct videoNo)=
+      (select count(distinct videoNo)
+       from Member, RentalAgreement
+       where Member.memberNo = RentalAgreement.memberNo
+        and fName = 'Don' and lName = 'Nelson')
